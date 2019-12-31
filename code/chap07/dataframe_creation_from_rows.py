@@ -119,13 +119,15 @@ if __name__ == '__main__':
     #==========================================
     # Create DataFrames from a list of the rows
     #==========================================
+    ## simplify
+    # departments_with_employees_seq = [eval('department_with_employees_{}'.format(i)) for i in range(1, 6)]
     departments_with_employees_seq_1 = [department_with_employees_1, department_with_employees_2, department_with_employees_5]
     df = spark.createDataFrame(departments_with_employees_seq_1)
     #
     df.show(truncate=False)
     df.printSchema()
     
-
+    
     departments_with_employees_seq_2 = [department_with_employees_1, department_with_employees_3, department_with_employees_4, department_with_employees_5]
     df2 = spark.createDataFrame(departments_with_employees_seq_2)
 
