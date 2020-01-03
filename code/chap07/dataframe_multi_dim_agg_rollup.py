@@ -223,12 +223,11 @@ if __name__ == '__main__':
     # Aggregate function: returns the level of grouping, equals to
     # (grouping(c1) << (n-1)) + (grouping(c2) << (n-2)) + … + grouping(cn)
     #
-    with_rollup = sales\
-       .rollup('city', 'year')\
-       .agg(sum('amount').alias('amount'), grouping_id().alias('gid'))\
-       .filter(col('gid') != 3)\
-       .sort('city', 'year')\
-       .select('city', 'year', 'amount', 'gid')
+    with_rollup = sales.rollup('city', 'year')\
+        .agg(sum('amount').alias('amount'), grouping_id().alias('gflg'))\
+        .filter(col('gflg') != 3)
+    with_rollup = with_rollup.sort(with_rollup.city.desc_nulls_last(), with_rollup.year.asc_nulls_last())\
+        .select('city', 'year', 'amount', 'gflg')
     #
     print("# with_rollup:")
     with_rollup.show()
@@ -246,9 +245,19 @@ if __name__ == '__main__':
        GROUPING SETS ((city, year), (city))
        ORDER BY city DESC NULLS LAST, year ASC NULLS LAST
        """)
+    # NEW solution
+    sales_SQL = spark.sql("""SELECT   city, year, sum(amount) as amount 
+                                      ,GROUPING_ID(city, year) GFLG
+                               FROM   sales_tbl
+                           GROUP BY   ROLLUP(city, year)
+                             HAVING   3 != GROUPING_ID(city, year) 
+                           ORDER BY   city DESC NULLS LAST, year ASC NULLS LAST
+                        """)
     #
     print("# with_grouping_sets:")
-    with_grouping_sets.show()    
+    with_grouping_sets.show()  
+    print("# sales_SQL:")
+    sales_SQL.show()
 
     # done!
     spark.stop()
